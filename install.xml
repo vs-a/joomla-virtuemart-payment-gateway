@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE install SYSTEM "http://dev.joomla.org/xml/1.5/module-install.dtd">
+<install method="upgrade" type="component" version="1.5.0">
+    <name>VirtueMart_frisbee_plugin</name>
+    <creationDate>August 2021</creationDate>
+    <author>Frisbee.ua</author>
+    <authorUrl>https://frisbee.ua</authorUrl>
+    <copyright>Copyright (C) 2021 Frisbee.ua. All rights reserved.</copyright>
+    <license>http://www.gnu.org/licenses/gpl-2.0.html GNU/GPL</license>
+    <version status="final">1.0.0</version>
+
+   <!-- Custom un/installer for 1.6 -->
+   <scriptfile>script.vmfrisbee.php</scriptfile>
+    <!-- Custom installer for 1.5 -->
+    <installfile>script.vmfrisbee.php</installfile>
+    <!-- Custom uninstaller for 1.5 -->
+    <uninstallfile>script.vmfrisbee.php</uninstallfile>
+    
+    <administration>
+     <menu>Frisbee payment gateway</menu>
+        <files folder="admin">
+            <filename>index.html</filename> 
+            <filename>admin.virtuemart_frisbee_plugin.php</filename>
+            <folder>plugins</folder>
+            <folder>languageBE</folder>
+        </files>
+    </administration>
+    
+</install>
