@@ -124,7 +124,7 @@ class plgVmPaymentFrisbee extends vmPSPlugin
             $currency = $method->FRISBEE_CURRENCY;
         }
 
-        list($lang,) = explode('-', JFactory::getLanguage()->getTag());
+        list($lang,$t) = explode('-', JFactory::getLanguage()->getTag());
 
         $paymentMethodID = $order['details']['BT']->virtuemart_paymentmethod_id;
         $responseUrl = JROUTE::_(JURI::root().'index.php?option=com_virtuemart&view=pluginresponse&task=pluginnotification&tmpl=component&pm='.$paymentMethodID);
@@ -154,17 +154,23 @@ class plgVmPaymentFrisbee extends vmPSPlugin
             'payment_systems' => 'frisbee'
         );
 
+        $orderDetails = $order['details']['BT'];
+        $this->setProductsParameter($order, $frisbee_args);
+        $this->setReservationDataParameter($orderDetails, $frisbee_args);
+
         $frisbee_args['signature'] = Frisbee::getSignature($frisbee_args, $secretKey);
 
-        $ch = curl_init();
-        curl_setopt($ch, CURLOPT_URL, $url);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-type: application/json'));
-        curl_setopt($ch, CURLOPT_POST, true);
-        curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode(['request' => $frisbee_args]));
-        $result = curl_exec($ch);
+        $opts = [
+            'http' => [
+                'method' => 'POST',
+                'header' => 'Content-type: application/json',
+                'content' => json_encode(['request' => $frisbee_args])
+            ]
+        ];
+        $context = stream_context_create($opts);
+        $content = file_get_contents($url, false, $context);
+        $result = $this->decodeJson($content);
 
-        $result = json_decode($result);
         if ($result->response->response_status == 'failure') {
             return $this->processConfirmedOrderPaymentResponse(0, $cart, $order, $result->response->error_message, '');
         }
@@ -197,7 +203,7 @@ class plgVmPaymentFrisbee extends vmPSPlugin
     {
         $data = JRequest::get('get');
 
-        list($order_id,) = explode(Frisbee::ORDER_SEPARATOR, $data['order_id']);
+        list($order_id, $time) = explode(Frisbee::ORDER_SEPARATOR, $data['order_id']);
         $order = new VirtueMartModelOrders();
 
         $order_s_id = $order->getOrderIdByOrderNumber($order_id);
@@ -224,8 +230,6 @@ class plgVmPaymentFrisbee extends vmPSPlugin
         $_SERVER['REQUEST_URI'] = '';
         $_SERVER['SCRIPT_NAME'] = '';
         $_SERVER['QUERY_STRING'] = '';
-        define('_JEXEC', 1);
-        define('DS', DIRECTORY_SEPARATOR);
         $option = 'com_virtuemart';
         $my_path = dirname(__FILE__);
         $my_path = explode(DS.'plugins', $my_path);
@@ -255,7 +259,7 @@ class plgVmPaymentFrisbee extends vmPSPlugin
         }
 
         require(dirname(__FILE__).DS.'includes/Frisbee.php');
-        list($order_id,) = explode(Frisbee::ORDER_SEPARATOR, $data['order_id']);
+        list($order_id,$time) = explode(Frisbee::ORDER_SEPARATOR, $data['order_id']);
         $order = new VirtueMartModelOrders();
 
         $method = new plgVmPaymentFrisbee();
@@ -307,6 +311,67 @@ class plgVmPaymentFrisbee extends vmPSPlugin
         }
 
         return $_REQUEST;
+    }
+
+    protected function setProductsParameter($order, &$parameters)
+    {
+        $parameters['products'] = [];
+
+        foreach ($order['items'] as $key => $item) {
+            $parameters['products'][] = [
+                'id' => $key+1,
+                'name' => $item->order_item_name,
+                'price' => number_format(floatval($item->product_item_price), 2),
+                'total_amount' => number_format(floatval($item->product_quantity * $item->product_item_price), 2),
+                'quantity' => number_format(floatval($item->product_quantity), 2),
+            ];
+        }
+    }
+
+    protected function setReservationDataParameter($order, &$parameters)
+    {
+        $db = JFactory::getDBO();
+
+        $query = 'SELECT *';
+        $query .= ' FROM `#__virtuemart_countries`';
+        $query .= ' WHERE virtuemart_country_id = ' . $order->virtuemart_country_id;
+        $db->setQuery($query);
+        $countryObject = $db->loadObject();
+
+        if ($order->virtuemart_state_id) {
+            $query = 'SELECT *';
+            $query .= ' FROM `#__virtuemart_states`';
+            $query .= ' WHERE virtuemart_state_id = '.$order->virtuemart_state_id;
+            $db->setQuery($query);
+            $stateObject = $db->loadObject();
+            $state = $stateObject->state_name;
+        } else {
+            $state = '';
+        }
+
+        $reservationData = array(
+            'phonemobile' => $order->phone_2,
+            'customer_address' => $order->address_1 . ' ' . $order->address_2,
+            'customer_country' => $countryObject->country_code_2,
+            'customer_state' => $state,
+            'customer_name' => $order->first_name . ' ' . $order->last_name,
+            'customer_city' => $order->city,
+            'customer_zip' => $order->zip,
+            'account' => $order->virtuemart_user_id,
+        );
+
+        $parameters['reservation_data'] = base64_encode(json_encode($reservationData));
+    }
+
+    protected function decodeJson($data)
+    {
+        $data = json_decode($data);
+
+        if (json_last_error() !== JSON_ERROR_NONE) {
+            throw new \Exception('Unable to parse string into JSON');
+        }
+
+        return $data;
     }
 
     /**
