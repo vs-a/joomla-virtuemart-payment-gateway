@@ -50,7 +50,6 @@ if (! defined('_VM_SCRIPT_INCLUDED')) {
             $src = $this->path.DS."languageBE";
             $dst = JPATH_ADMINISTRATOR.DS."language";
             $this->recurse_copy($src, $dst);
-            //echo " VirtueMart2 language   moved to the joomla language BE folder   <br/ >" ;
 
             echo "<H3>Virtuemart Frisbee payment plugin successfully installed.</h3>";
 
@@ -189,7 +188,7 @@ if (! defined('_VM_SCRIPT_INCLUDED')) {
             if (! empty($id)) {
                 $data['id'] = $id;
             }
-            // 			if(empty($count)){
+
             if (! $table->bind($data)) {
                 $app = JFactory::getApplication();
                 $app->enqueueMessage('VMInstaller table->bind throws error for '.$title.' '.$module.' '.$params);
@@ -266,7 +265,6 @@ if (! defined('_VM_SCRIPT_INCLUDED')) {
          */
         private function alterTable($tablename, $fields, $command = 'CHANGE')
         {
-
             if (empty($this->db)) {
                 $this->db = JFactory::getDBO();
             }
@@ -295,14 +293,11 @@ if (! defined('_VM_SCRIPT_INCLUDED')) {
          */
         private function checkAddFieldToTable($table, $field, $fieldType)
         {
-
             $query = 'SHOW COLUMNS FROM `'.$table.'` ';
             $this->db->setQuery($query);
             $columns = $this->db->loadResultArray(0);
 
             if (! in_array($field, $columns)) {
-
-
                 $query = 'ALTER TABLE `'.$table.'` ADD '.$field.' '.$fieldType;
                 $this->db->setQuery($query);
                 if (! $this->db->query()) {
@@ -380,6 +375,8 @@ if (! defined('_VM_SCRIPT_INCLUDED')) {
 
         private function createPaymentMethod($paymentJPluginId)
         {
+            $lang = $this->getLanguage();
+
             $data = array(
                 'payment_name' => 'Frisbee',
                 'slug' => 'frisbee',
@@ -388,29 +385,29 @@ if (! defined('_VM_SCRIPT_INCLUDED')) {
                 'payment_jplugin_id' => $paymentJPluginId,
                 'ordering' => 0,
                 'option' => 'com_virtuemart',
-                'virtuemart_paymentmethod_id' => '0',
+                'virtuemart_paymentmethod_id' => 1,
                 'task' => 'apply',
                 'boxchecked' => '0',
                 'xxcontroller' => 'paymentmethod',
                 'view' => 'paymentmethod',
             );
 
-            $paymentMethodId = \VirtueMartModelPaymentmethod::store($data);
-
-            if(!VmConfig::$vmlang){
-                $params = JComponentHelper::getParams('com_languages');
-                $lang = $params->get('site', 'en-GB');
-                $lang = strtolower(strtr($lang,'-','_'));
-            } else {
-                $lang = VmConfig::$vmlang;
-            }
+            VmConfig::$vmlang = $lang;
+            $model = new \VirtueMartModelPaymentmethod();
+            $paymentMethodId = $model::store($data);
 
             $db = JFactory::getDBO();
-            $q="INSERT INTO `#__virtuemart_paymentmethods_".$lang."` ".
-                "(`virtuemart_paymentmethod_id`, `payment_name`, `payment_desc`, `slug`) " .
-                "VALUES	($paymentMethodId, 'Frisbee', 'Frisbee Service', 'frisbee')";
+
+            $q = "SELECT count(virtuemart_paymentmethod_id) FROM `#__virtuemart_paymentmethods_{$lang}` WHERE slug='frisbee'";
             $db->setQuery($q);
-            $db->execute();
+            $result = $db->loadResult();
+            if (!$result) {
+                $q="INSERT INTO `#__virtuemart_paymentmethods_".$lang."` ".
+                    "(`virtuemart_paymentmethod_id`, `payment_name`, `payment_desc`, `slug`) " .
+                    "VALUES	($paymentMethodId, 'Frisbee', 'Frisbee Service', 'frisbee')";
+                $db->setQuery($q);
+                $db->execute();
+            }
 
             if (!class_exists('vmPSPlugin')) {
                 require(JPATH_ROOT . DS .  'vmpsplugin.php');
@@ -466,22 +463,17 @@ if (! defined('_VM_SCRIPT_INCLUDED')) {
         public function vmUninstall()
         {
             $db = JFactory::getDBO();
+            $lang = $this->getLanguage();
 
-            if(!VmConfig::$vmlang){
-                $params = JComponentHelper::getParams('com_languages');
-                $lang = $params->get('site', 'en-GB');
-                $lang = strtolower(strtr($lang,'-','_'));
-            } else {
-                $lang = VmConfig::$vmlang;
+            if (! version_compare(JVERSION, '3.0.0', 'lt')) {
+                $query = "DELETE FROM `#__virtuemart_paymentmethods` WHERE `payment_name` = 'Frisbee' AND `slug` = 'frisbee'";
+                $db->setQuery($query);
+                $db->execute();
+
+                $query = sprintf('DELETE FROM `#__virtuemart_paymentmethods_%s` WHERE `payment_name` = \'Frisbee\' AND `slug` = \'frisbee\'', $lang);
+                $db->setQuery($query);
+                $db->execute();
             }
-
-            $query = "DELETE FROM `#__virtuemart_paymentmethods` WHERE `payment_name` = 'Frisbee' AND `slug` = 'frisbee'";
-            $db->setQuery($query);
-            $db->execute();
-
-            $query = sprintf('DELETE FROM `#__virtuemart_paymentmethods_%s` WHERE `payment_name` = \'Frisbee\' AND `slug` = \'frisbee\'', $lang);
-            $db->setQuery($query);
-            $db->execute();
         }
 
         public function uninstall()
@@ -537,14 +529,30 @@ if (! defined('_VM_SCRIPT_INCLUDED')) {
 
             return VmTable::getInstance($name, $prefix, $config);
         }
+
+        private function getLanguage()
+        {
+            if(!VmConfig::$vmlang){
+                $params = JComponentHelper::getParams('com_languages');
+                $lang = $params->get('site', 'en-GB');
+                $lang = strtolower(strtr($lang,'-','_'));
+            } else {
+                $lang = VmConfig::$vmlang;
+            }
+
+            if (!$lang) {
+                jimport('joomla.language.helper');
+                $lang = JFactory::getLanguage()->getTag();
+            }
+
+            return $lang;
+        }
     }
 
-    // PLZ look in #vminstall.php# to add your plugin and module
     function com_install()
     {
-
         if (! version_compare(JVERSION, '1.6.0', 'ge')) {
-            $vmInstall = new com_virtuemart_allinoneInstallerScript();
+            $vmInstall = new com_VirtueMart_frisbee_pluginInstallerScript();
             $vmInstall->vmInstall();
         }
 
@@ -554,12 +562,14 @@ if (! defined('_VM_SCRIPT_INCLUDED')) {
     function com_uninstall()
     {
         if (! version_compare(JVERSION, '1.6.0', 'ge')) {
-            $vmInstall = new com_virtuemart_allinoneInstallerScript();
+            $vmInstall = new com_VirtueMart_frisbee_pluginInstallerScript();
             $vmInstall->vmUninstall();
         }
 
         return true;
     }
+
+    class plgVmPaymentFrisbeeInstallerScript extends com_VirtueMart_frisbee_pluginInstallerScript {}
 }
 
 ?>

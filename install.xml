@@ -17,7 +17,7 @@
     <uninstallfile>script.vmfrisbee.php</uninstallfile>
     
     <administration>
-     <menu>Frisbee payment gateway</menu>
+     <menu>Frisbee Payment Service</menu>
         <files folder="admin">
             <filename>index.html</filename> 
             <filename>admin.virtuemart_frisbee_plugin.php</filename>

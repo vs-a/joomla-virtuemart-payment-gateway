@@ -1,0 +1,206 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<extension version="2.5" type="plugin" method="upgrade" group="vmpayment">
+    <name>VirtueMart_frisbee_plugin</name>
+    <creationDate>August 2021</creationDate>
+    <author>Frisbee.ua</author>
+    <authorUrl>https://frisbee.ua</authorUrl>
+    <copyright>Copyright (C) 2021 Frisbee.ua. All rights reserved.</copyright>
+    <license>http://www.gnu.org/licenses/gpl-2.0.html GNU/GPL</license>
+    <version status="final">1.0.0</version>
+    <description><![CDATA[Frisbee Payment Service ]]></description>
+
+	<!-- Custom un/installer for 1.6 -->
+	<scriptfile>script.vmfrisbee.php</scriptfile>
+	<!-- Custom installer for 1.5 -->
+	<installfile>script.vmfrisbee.php</installfile>
+	<!-- Custom uninstaller for 1.5 -->
+	<uninstallfile>script.vmfrisbee.php</uninstallfile>
+
+    <languages>
+		<language tag="en-GB">admin/languageBE/en-GB/en-GB.plg_vmpayment_frisbee.ini</language>
+		<language tag="ru-RU">admin/languageBE/ru-RU/ru-RU.plg_vmpayment_frisbee.ini</language>
+    </languages>
+
+	<files folder="admin/plugins/vmpayment/frisbee">
+			<filename plugin="frisbee">frisbee.php</filename>
+			<folder>includes</folder>
+	</files>
+	
+	<vmconfig>
+		<fields name="params">
+			<fieldset name="payment" addfieldpath="/administrator/components/com_virtuemart/fields">
+				<field name="FRISBEE_MERCHANT" type="text" label="VMPAYMENT_FRISBEE_FRISBEE_MERCHANT"
+					   description="VMPAYMENT_FRISBEE_FRISBEE_MERCHANT_EXPLAIN"/>
+
+				<field name="FRISBEE_SECRET_KEY" type="text" label="VMPAYMENT_FRISBEE_FRISBEE_SECRET_KEY"
+					   description="VMPAYMENT_FRISBEE_FRISBEE_SECRET_KEY_EXPLAIN"/>
+
+				<field name="FRISBEE_CURRENCY" type="list" default="0" label="VMPAYMENT_FRISBEE_FRISBEE_CURRENCY" description="VMPAYMENT_FRISBEE_FRISBEE_CURRENCY_EXPLAIN">
+					<option value="">Default</option>
+					<option value="UAH">Hryvnia</option>
+					<option value="AED">U.A.E. Dirham</option>
+					<option value="AFN">Afghanistan Afghani</option>
+					<option value="ALL">Albanian LEK</option>
+					<option value="AMD">Armenian Dram</option>
+					<option value="ANG">Netherlands Antillia</option>
+					<option value="AOA">Angola Kwanza</option>
+					<option value="ARS">Argentine Peso</option>
+					<option value="AUD">Australian Dollar</option>
+					<option value="AWG">Aruban Guilder</option>
+					<option value="AZN">Azerbaijanian Manat</option>
+					<option value="BAM">Bosnian Conv. Mark</option>
+					<option value="BBD">Barbados Dollar</option>
+					<option value="BDT">Taka</option>
+					<option value="BGN">Bulgarian Lev</option>
+					<option value="BHD">Bahraini Dinar</option>
+					<option value="BIF">Burundi Franc</option>
+					<option value="BMD">Bermudan Dollar</option>
+					<option value="BND">Brunei Dollar</option>
+					<option value="BOB">Bolivian Peso</option>
+					<option value="BRL">Brazilian Real</option>
+					<option value="BSD">Bahamian Dollar</option>
+					<option value="BTN">Ngultrum</option>
+					<option value="BWP">Pula</option>
+					<option value="BYR">Belarussian Ruble</option>
+					<option value="BZD">Belize Dollar</option>
+					<option value="CAD">Canadian Dollar</option>
+					<option value="CDF">Franc Congolais</option>
+					<option value="CHF">Swiss Franc</option>
+					<option value="CLP">Chilean Peso</option>
+					<option value="CNY">Yuan Renminbi</option>
+					<option value="COP">Colombian Peso</option>
+					<option value="CRC">Costa Rican Colon</option>
+					<option value="CUP">Cuban Peso</option>
+					<option value="CVE">Cape Verde Escudo</option>
+					<option value="CZK">Czech Koruna</option>
+					<option value="DJF">Djibouti Franc</option>
+					<option value="DKK">Danish Krone</option>
+					<option value="DOP">Dominican Peso</option>
+					<option value="DZD">Algerian Dinar</option>
+					<option value="EGP">Egyptian Pound</option>
+					<option value="ERN">Eritrean Nakfa</option>
+					<option value="ETB">Ethiopian Birr</option>
+					<option value="EUR">Euro</option>
+					<option value="FJD">Fiji Dollar</option>
+					<option value="FKP">Falkland Islands</option>
+					<option value="GBP">Pound Sterling</option>
+					<option value="GEL">Georgian Lari</option>
+					<option value="GHS">Ghana Cedi</option>
+					<option value="GIP">Gibraltar Pound</option>
+					<option value="GMD">Dalasi</option>
+					<option value="GNF">Syli</option>
+					<option value="GTQ">Quetzal</option>
+					<option value="GYD">Guyana Dollar</option>
+					<option value="HKD">Hong Kong Dollar</option>
+					<option value="HNL">Lempira</option>
+					<option value="HRK">Croatian Kuna</option>
+					<option value="HTG">Gourde</option>
+					<option value="HUF">Hungarian Forint</option>
+					<option value="IDR">Rupiah</option>
+					<option value="ILS">Israel Shekel</option>
+					<option value="INR">Indian Rupee</option>
+					<option value="IQD">Iraqi Dinar</option>
+					<option value="IRR">Iranian Rial</option>
+					<option value="ISK">Iceland Krona</option>
+					<option value="JMD">Jamaican Dollar</option>
+					<option value="JOD">Jordanian Dinar</option>
+					<option value="JPY">Japanese Yen</option>
+					<option value="KES">Kenyan Shilling</option>
+					<option value="KGS">Kyrgyzstan Som</option>
+					<option value="KHR">Riel</option>
+					<option value="KMF">Comoros Franc</option>
+					<option value="KRW">Korean Won</option>
+					<option value="KWD">Kuwaiti Dinar</option>
+					<option value="KYD">Cayman Island Dollar</option>
+					<option value="KZT">Tenge</option>
+					<option value="LAK">Kip</option>
+					<option value="LBP">Lebanese Pound</option>
+					<option value="LKR">Sri Lanka Rupee</option>
+					<option value="LRD">Liberian Dollar</option>
+					<option value="LSL">Lesotho Loti</option>
+					<option value="LTL">Lithuanian Litas</option>
+					<option value="LVL">Latvian Lat</option>
+					<option value="LYD">Libyan Dinar</option>
+					<option value="MAD">Morrocan Dirham</option>
+					<option value="MDL">Moldovian Leu</option>
+					<option value="MGA">Malagasy Ariary</option>
+					<option value="MKD">Macedonian Denar</option>
+					<option value="MMK">Kyat</option>
+					<option value="MNT">Tugrik</option>
+					<option value="MOP">Pataca</option>
+					<option value="MUR">Mauritius Rupee</option>
+					<option value="MVR">Maldive Rupee</option>
+					<option value="MWK">Malawi Kwacha</option>
+					<option value="MXN">Mexican Peso</option>
+					<option value="MYR">Malaysian Ringgit</option>
+					<option value="MZN">Mozambique Metical</option>
+					<option value="NAD">Namibia Dollar</option>
+					<option value="NGN">Naira</option>
+					<option value="NIO">Cordoba</option>
+					<option value="NOK">Norwegian Krone</option>
+					<option value="NPR">Nepalese Rupee</option>
+					<option value="NZD">New Zealand Dollar</option>
+					<option value="OMR">Rial Omani</option>
+					<option value="PAB">Balboa</option>
+					<option value="PEN">Peru Inti</option>
+					<option value="PGK">Kina</option>
+					<option value="PHP">Philippine Peso</option>
+					<option value="PKR">Pakistan Rupee</option>
+					<option value="PLN">Polish Zloty</option>
+					<option value="PYG">Guarani</option>
+					<option value="QAR">Qatari Rial</option>
+					<option value="RON">New Romanian Lei</option>
+					<option value="RSD">Serbian Dinar</option>
+					<option value="RUB">Russian Ruble</option>
+					<option value="RWF">Rwanda Franc</option>
+					<option value="SAR">Saudi Riyal</option>
+					<option value="SBD">Solomon Islands Doll</option>
+					<option value="SCR">Seychelles Rupee</option>
+					<option value="SDG">Sudanese Pound</option>
+					<option value="SEK">Swedish Krona</option>
+					<option value="SGD">Singapore Dollar</option>
+					<option value="SHP">St. Helena Pound</option>
+					<option value="SLL">Leone</option>
+					<option value="SOS">Somali Shilling</option>
+					<option value="SRD">Suriname Dollar</option>
+					<option value="STD">Dobra</option>
+					<option value="SVC">El Salvador Colon</option>
+					<option value="SZL">Lilangeni</option>
+					<option value="THB">Thailand Baht</option>
+					<option value="TJS">Tajik Somoni</option>
+					<option value="TMT">Manat</option>
+					<option value="TND">Tunisian Dinar</option>
+					<option value="TOP">Paanga</option>
+					<option value="TRY">Turkish Lira</option>
+					<option value="TTD">Trinidad and Tobago</option>
+					<option value="TWD">New Taiwan Dollar</option>
+					<option value="TZS">Tanzanian Shilling</option>
+					<option value="UGX">Uganda Shilling</option>
+					<option value="USD">United States Dollar</option>
+					<option value="UYU">Uruguayan Peso</option>
+					<option value="UZS">Uzbekistan Sum</option>
+					<option value="VEF">Bolivar</option>
+					<option value="VND">Dong</option>
+					<option value="VUV">Vatu</option>
+					<option value="WST">Tala</option>
+					<option value="XAF">CFA Franc BEAC</option>
+					<option value="XCD">East Caribbean Dolla</option>
+					<option value="XOF">CFA Franc BCEAO</option>
+					<option value="XPF">CFP Franc</option>
+					<option value="YER">Yemini Rial</option>
+					<option value="ZAR">Rand</option>
+					<option value="ZMW">Zambian Kwacha</option>
+					<option value="ZWD">Zimbabwe Dollar</option>
+				</field>
+
+				<field name="status_pending" type="vmorderstate" scope="com_virtuemart" default="P"
+					   label="VMPAYMENT_FRISBEE_STATUS_PENDING" description="VMPAYMENT_FRISBEE_STATUS_PENDING_EXPLAIN"/>
+
+				<field name="status_success" type="vmorderstate" scope="com_virtuemart" default="C"
+					   label="VMPAYMENT_FRISBEE_STATUS_SUCCESS" description="VMPAYMENT_FRISBEE_STATUS_SUCCESS_EXPLAIN"/>
+			</fieldset>
+		</fields>
+	
+		
+	</vmconfig>
+</extension>

@@ -399,7 +399,7 @@ class plgVmPaymentFrisbee extends vmPSPlugin
      */
     function plgVmOnStoreInstallPaymentPluginTable($jplugin_id)
     {
-        return $this->onStoreInstallPluginTable($jplugin_id);
+        //return $this->onStoreInstallPluginTable($jplugin_id);
     }
 
     /**
@@ -505,6 +505,23 @@ class plgVmPaymentFrisbee extends vmPSPlugin
     function plgVmSetOnTablePluginParamsPayment($name, $id, &$table)
     {
         return $this->setOnTablePluginParams($name, $id, $table);
+    }
+
+    protected function displayLogos($logo_list)
+    {
+        $img = "";
+
+        var_dump($logo_list);
+        //if (!(empty($logo_list))) {
+        //    $url = JURI::root() . 'plugins/vmpayment/fondy/';
+        //    if (!is_array($logo_list))
+        //        $logo_list = (array) $logo_list;
+        //    foreach ($logo_list as $logo) {
+        //        $alt_text = substr($logo, 0, strpos($logo, '.'));
+        //        $img .= '<img align="middle" src="' . $url . $logo . '"  alt="' . $alt_text . '" /> ';
+        //    }
+        //}
+        return $img;
     }
 }
 

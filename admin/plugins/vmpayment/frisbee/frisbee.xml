@@ -7,7 +7,7 @@
     <copyright>Frisbee</copyright>
     <license>http://www.gnu.org/licenses/gpl-3.0.html GNU/GPL</license>
     <version>1.0.0</version>
-    <description>Frisbee payment gateway</description>
+    <description>Frisbee payment service</description>
     <languages>
         <language tag="ru-RU">ru-RU.plg_vmpayment_frisbee.ini</language>
         <language tag="en-GB">en-GB.plg_vmpayment_frisbee.ini</language>
