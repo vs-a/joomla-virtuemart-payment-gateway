@@ -5,6 +5,7 @@ class Frisbee
     const ORDER_APPROVED = 'approved';
     const ORDER_DECLINED = 'declined';
     const ORDER_REVERSED = 'reversed';
+    const ORDER_EXPIRED = 'expired';
     const ORDER_SEPARATOR = ':';
     const SIGNATURE_SEPARATOR = '|';
     const URL = 'https://api.fondy.eu/api/checkout/url/';
@@ -24,6 +25,7 @@ class Frisbee
     protected $isOrderDeclined;
     protected $isOrderFullyReversed;
     protected $isOrderPartiallyReversed;
+    protected $isOrderExpired;
 
     public function __construct()
     {
@@ -253,14 +255,22 @@ class Frisbee
     public function handleCallbackData($data)
     {
         if ($this->isCallbackDataValid($data)) {
-            if (strtolower($data['order_status']) == self::ORDER_DECLINED) {
+            $orderStatus = strtolower($data['order_status']);
+            if ($orderStatus == self::ORDER_DECLINED) {
                 $this->isOrderDeclined = true;
                 $this->setStatusMessage('Order was declined.');
 
                 return false;
             }
 
-            if ($data['order_status'] == self::ORDER_REVERSED) {
+            if ($orderStatus == self::ORDER_EXPIRED) {
+                $this->isOrderExpired = true;
+                $this->setStatusMessage('Order expired.');
+
+                return false;
+            }
+
+            if ($orderStatus == self::ORDER_REVERSED) {
                 $this->isOrderFullyReversed = true;
                 $this->setStatusMessage('Order fully reversed.');
 
@@ -317,6 +327,14 @@ class Frisbee
     public function isOrderApproved()
     {
         return $this->isOrderApproved;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function isOrderExpired()
+    {
+        return $this->isOrderExpired;
     }
 
     /**

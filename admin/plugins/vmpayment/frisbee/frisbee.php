@@ -134,10 +134,10 @@ class plgVmPaymentFrisbee extends vmPSPlugin
         $callbackUrl = JROUTE::_(JURI::root().'index.php?option=com_virtuemart&view=pluginresponse&task=pluginnotification&tmpl=component&pm='.$paymentMethodID);
 
         $frisbeeService = new Frisbee();
-        $frisbeeService->setMerchantId($method->FONDY_MERCHANT);
-        $frisbeeService->setSecretKey($method->FONDY_SECRET_KEY);
+        $frisbeeService->setMerchantId($method->FRISBEE_MERCHANT);
+        $frisbeeService->setSecretKey($method->FRISBEE_SECRET_KEY);
         $frisbeeService->setRequestParameterOrderId($cart->order_number);
-        $frisbeeService->setRequestParameterOrderDescription($this->generateOrderDescription($orderDetails));
+        $frisbeeService->setRequestParameterOrderDescription($this->generateOrderDescriptionParameter($orderDetails));
         $frisbeeService->setRequestParameterAmount($orderDetails->order_total);
         $frisbeeService->setRequestParameterCurrency($currency);
         $frisbeeService->setRequestParameterServerCallbackUrl($callbackUrl);
@@ -253,25 +253,24 @@ class plgVmPaymentFrisbee extends vmPSPlugin
 
             if ($frisbeeService->isOrderDeclined()) {
                 $orderitems['order_status'] = 'D';
-            }
-
-            if ($frisbeeService->isOrderFullyReversed() || $frisbeeService->isOrderPartiallyReversed()) {
-                $orderitems['order_status'] = 'R';
-            }
-
-            if ($frisbeeService->isOrderApproved()) {
+            } elseif ($frisbeeService->isOrderExpired()) {
+                $orderitems['order_status'] = 'X';
+            } elseif ($frisbeeService->isOrderApproved()) {
                 $orderitems['order_status'] = isset($methoditems->status_success) ? $methoditems->status_success : 'C';
+            } elseif ($frisbeeService->isOrderFullyReversed() || $frisbeeService->isOrderPartiallyReversed()) {
+                $orderitems['order_status'] = 'R';
             }
 
             $orderitems['comments'] = 'Frisbee ID: '.$data['order_id'].' Payment ID: '.$data['payment_id'] . ' Message: ' . $frisbeeService->getStatusMessage();
         } catch (\Exception $exception) {
             $orderitems['order_status'] = 'P';
             $orderitems['comments'] = $exception->getMessage();
+            http_response_code(500);
         }
 
         if ($response === true) {
-            $red = JROUTE::_(JURI::root().'index.php?option=com_virtuemart&view=pluginresponse&task=pluginresponsereceived&pm='.$paymentMethodId);
-            header('Location:'.$red);
+            $redirect = JROUTE::_(JURI::root().'index.php?option=com_virtuemart&view=pluginresponse&task=pluginresponsereceived&pm='.$paymentMethodId);
+            header('Location:'.$redirect);
             $datetime = date("YmdHis");
             echo "OK";
         } else {
@@ -331,7 +330,7 @@ class plgVmPaymentFrisbee extends vmPSPlugin
      * @param $orderDetails
      * @return string
      */
-    protected function generateOrderDescription($orderDetails)
+    protected function generateOrderDescriptionParameter($orderDetails)
     {
         $description = '';
         foreach ($orderDetails['items'] as $item) {
