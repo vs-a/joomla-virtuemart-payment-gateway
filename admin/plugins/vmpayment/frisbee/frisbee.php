@@ -244,6 +244,8 @@ class plgVmPaymentFrisbee extends vmPSPlugin
         $paymentMethodId = $orderitems['details']['BT']->virtuemart_paymentmethod_id;
 
         $methoditems = $method->__getVmPluginMethod($paymentMethodId);
+        $orderStatusPending = isset($methoditems->status_pending) ? $methoditems->status_pending : 'P';
+        $orderStatusSuccess = isset($methoditems->status_success) ? $methoditems->status_success : 'C';
 
         try {
             $frisbeeService->setMerchantId($methoditems->FRISBEE_MERCHANT);
@@ -254,16 +256,20 @@ class plgVmPaymentFrisbee extends vmPSPlugin
             if ($frisbeeService->isOrderDeclined()) {
                 $orderitems['order_status'] = 'D';
             } elseif ($frisbeeService->isOrderExpired()) {
-                $orderitems['order_status'] = 'X';
+                if ($orderitems['order_status'] == $orderStatusPending) {
+                    $orderitems['order_status'] = 'X';
+                } else {
+                    die();
+                }
             } elseif ($frisbeeService->isOrderApproved()) {
-                $orderitems['order_status'] = isset($methoditems->status_success) ? $methoditems->status_success : 'C';
+                $orderitems['order_status'] = $orderStatusSuccess;
             } elseif ($frisbeeService->isOrderFullyReversed() || $frisbeeService->isOrderPartiallyReversed()) {
                 $orderitems['order_status'] = 'R';
             }
 
             $orderitems['comments'] = 'Frisbee ID: '.$data['order_id'].' Payment ID: '.$data['payment_id'] . ' Message: ' . $frisbeeService->getStatusMessage();
         } catch (\Exception $exception) {
-            $orderitems['order_status'] = 'P';
+            $orderitems['order_status'] = $orderStatusPending;
             $orderitems['comments'] = $exception->getMessage();
             http_response_code(500);
         }
