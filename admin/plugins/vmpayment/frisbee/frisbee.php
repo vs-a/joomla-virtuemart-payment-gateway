@@ -10,8 +10,9 @@ if (! class_exists('vmPSPlugin')) {
 class plgVmPaymentFrisbee extends vmPSPlugin
 {
     public static $_this = false;
+    const PRECISION = 2;
 
-    function __construct(&$subject = null, $config = null)
+    public function __construct(&$subject = null, $config = null)
     {
         if ($subject && $config) {
             parent::__construct($subject, $config);
@@ -36,7 +37,7 @@ class plgVmPaymentFrisbee extends vmPSPlugin
             'status_success' => array('', 'string'),
         );
 
-        $res = $this->setConfigParameterable($this->_configTableFieldName, $varsToPush);
+        $this->setConfigParameterable($this->_configTableFieldName, $varsToPush);
     }
 
     /**
@@ -126,57 +127,33 @@ class plgVmPaymentFrisbee extends vmPSPlugin
 
         list($lang,$t) = explode('-', JFactory::getLanguage()->getTag());
 
-        $paymentMethodID = $order['details']['BT']->virtuemart_paymentmethod_id;
+        $user = &$cart->BT;
+        $orderDetails = $order['details']['BT'];
+        $paymentMethodID = $orderDetails->virtuemart_paymentmethod_id;
         $responseUrl = JROUTE::_(JURI::root().'index.php?option=com_virtuemart&view=pluginresponse&task=pluginnotification&tmpl=component&pm='.$paymentMethodID);
         $callbackUrl = JROUTE::_(JURI::root().'index.php?option=com_virtuemart&view=pluginresponse&task=pluginnotification&tmpl=component&pm='.$paymentMethodID);
 
-        if (empty($method->FONDY_MERCHANT) && empty($method->FONDY_SECRET_KEY)) {
-            $url = 'https://dev2.pay.fondy.eu/api/checkout/url/';
-            $merchantId = '1601318';
-            $secretKey = 'test';
-        } else {
-            $url = Frisbee::URL;
-            $merchantId = $method->FONDY_MERCHANT;
-            $secretKey = $method->FONDY_SECRET_KEY;
-        }
+        $frisbeeService = new Frisbee();
+        $frisbeeService->setMerchantId($method->FONDY_MERCHANT);
+        $frisbeeService->setSecretKey($method->FONDY_SECRET_KEY);
+        $frisbeeService->setRequestParameterOrderId($cart->order_number);
+        $frisbeeService->setRequestParameterOrderDescription($this->generateOrderDescription($orderDetails));
+        $frisbeeService->setRequestParameterAmount($orderDetails->order_total);
+        $frisbeeService->setRequestParameterCurrency($currency);
+        $frisbeeService->setRequestParameterServerCallbackUrl($callbackUrl);
+        $frisbeeService->setRequestParameterResponseUrl($responseUrl);
+        $frisbeeService->setRequestParameterLanguage($lang);
+        $frisbeeService->setRequestParameterSenderEmail($user['email']);
+        $frisbeeService->setRequestParameterReservationData($this->generateReservationDataParameter($orderDetails));
 
-        $user = &$cart->BT;
-        $frisbee_args = array(
-            'order_id' => $cart->order_number . Frisbee::ORDER_SEPARATOR . time(),
-            'merchant_id' => $merchantId,
-            'order_desc' => $cart->order_number,
-            'amount' => Frisbee::getAmount($order),
-            'currency' => $currency,
-            'server_callback_url' => $callbackUrl,
-            'response_url' => $responseUrl,
-            'lang' => strtoupper($lang),
-            'sender_email' => $user['email'],
-            'payment_systems' => 'frisbee'
-        );
+        $checkoutUrl = $frisbeeService->retrieveCheckoutUrl($cart->order_number);
 
-        $orderDetails = $order['details']['BT'];
-        $this->setProductsParameter($order, $frisbee_args);
-        $this->setReservationDataParameter($orderDetails, $frisbee_args);
-
-        $frisbee_args['signature'] = Frisbee::getSignature($frisbee_args, $secretKey);
-
-        $opts = [
-            'http' => [
-                'method' => 'POST',
-                'header' => 'Content-type: application/json',
-                'content' => json_encode(['request' => $frisbee_args])
-            ]
-        ];
-        $context = stream_context_create($opts);
-        $content = file_get_contents($url, false, $context);
-        $result = $this->decodeJson($content);
-
-        if ($result->response->response_status == 'failure') {
-            return $this->processConfirmedOrderPaymentResponse(0, $cart, $order, $result->response->error_message, '');
+        if (!$checkoutUrl) {
+            return $this->processConfirmedOrderPaymentResponse(0, $cart, $order, $frisbeeService->getRequestResultErrorMessage(), '');
         }
 
         header("HTTP/1.1 301 Moved Permanently");
-        header("Location: " . $result->response->checkout_url);
+        header("Location: " . $checkoutUrl);
 
         return $this->processConfirmedOrderPaymentResponse(2, $cart, $order, $html, '');
     }
@@ -225,11 +202,6 @@ class plgVmPaymentFrisbee extends vmPSPlugin
 
     function plgVmOnPaymentNotification()
     {
-        $data = $this->getCallbackData();
-
-        $_SERVER['REQUEST_URI'] = '';
-        $_SERVER['SCRIPT_NAME'] = '';
-        $_SERVER['QUERY_STRING'] = '';
         $option = 'com_virtuemart';
         $my_path = dirname(__FILE__);
         $my_path = explode(DS.'plugins', $my_path);
@@ -259,7 +231,11 @@ class plgVmPaymentFrisbee extends vmPSPlugin
         }
 
         require(dirname(__FILE__).DS.'includes/Frisbee.php');
-        list($order_id,$time) = explode(Frisbee::ORDER_SEPARATOR, $data['order_id']);
+
+        $frisbeeService = new Frisbee();
+        $data = $frisbeeService->getCallbackData();
+        $order_id = $frisbeeService->parseFrisbeeOrderId($data);
+
         $order = new VirtueMartModelOrders();
 
         $method = new plgVmPaymentFrisbee();
@@ -269,12 +245,29 @@ class plgVmPaymentFrisbee extends vmPSPlugin
 
         $methoditems = $method->__getVmPluginMethod($paymentMethodId);
 
-        $option = [
-            'merchant_id' => $methoditems->FRISBEE_MERCHANT,
-            'secret_key' => $methoditems->FRISBEE_SECRET_KEY,
-        ];
+        try {
+            $frisbeeService->setMerchantId($methoditems->FRISBEE_MERCHANT);
+            $frisbeeService->setSecretKey($methoditems->FRISBEE_SECRET_KEY);
 
-        $response = Frisbee::isPaymentValid($option, $data);
+            $response = $frisbeeService->handleCallbackData($data);
+
+            if ($frisbeeService->isOrderDeclined()) {
+                $orderitems['order_status'] = 'D';
+            }
+
+            if ($frisbeeService->isOrderFullyReversed() || $frisbeeService->isOrderPartiallyReversed()) {
+                $orderitems['order_status'] = 'R';
+            }
+
+            if ($frisbeeService->isOrderApproved()) {
+                $orderitems['order_status'] = isset($methoditems->status_success) ? $methoditems->status_success : 'C';
+            }
+
+            $orderitems['comments'] = 'Frisbee ID: '.$data['order_id'].' Payment ID: '.$data['payment_id'] . ' Message: ' . $frisbeeService->getStatusMessage();
+        } catch (\Exception $exception) {
+            $orderitems['order_status'] = 'P';
+            $orderitems['comments'] = $exception->getMessage();
+        }
 
         if ($response === true) {
             $red = JROUTE::_(JURI::root().'index.php?option=com_virtuemart&view=pluginresponse&task=pluginresponsereceived&pm='.$paymentMethodId);
@@ -282,53 +275,19 @@ class plgVmPaymentFrisbee extends vmPSPlugin
             $datetime = date("YmdHis");
             echo "OK";
         } else {
-            echo "<!-- {$response} -->";
+            echo sprintf("<!-- {%s} -->", $frisbeeService->getStatusMessage());
         }
 
-        $orderitems['order_status'] = $methoditems->status_success;
         $orderitems['customer_notified'] = 0;
         $orderitems['virtuemart_order_id'] = $order_s_id;
-        $orderitems['comments'] = 'Frisbee ID: '.$order_id." Ref ID : ".$data['payment_id'];
         $order->updateStatusForOneOrder($order_s_id, $orderitems, true);
     }
 
     /**
-     * @return array
+     * @param $order
+     * @return string
      */
-    protected function getCallbackData()
-    {
-        $content = file_get_contents('php://input');
-
-        if (isset($_SERVER['CONTENT_TYPE'])) {
-            switch ($_SERVER['CONTENT_TYPE']) {
-                case 'application/json':
-                    return json_decode($content, true);
-                case 'application/xml':
-                    return (array) simplexml_load_string($content, "SimpleXMLElement", LIBXML_NOCDATA);
-                default:
-                    return $_REQUEST;
-            }
-        }
-
-        return $_REQUEST;
-    }
-
-    protected function setProductsParameter($order, &$parameters)
-    {
-        $parameters['products'] = [];
-
-        foreach ($order['items'] as $key => $item) {
-            $parameters['products'][] = [
-                'id' => $key+1,
-                'name' => $item->order_item_name,
-                'price' => number_format(floatval($item->product_item_price), 2),
-                'total_amount' => number_format(floatval($item->product_quantity * $item->product_item_price), 2),
-                'quantity' => number_format(floatval($item->product_quantity), 2),
-            ];
-        }
-    }
-
-    protected function setReservationDataParameter($order, &$parameters)
+    protected function generateReservationDataParameter($order)
     {
         $db = JFactory::getDBO();
 
@@ -358,20 +317,62 @@ class plgVmPaymentFrisbee extends vmPSPlugin
             'customer_city' => $order->city,
             'customer_zip' => $order->zip,
             'account' => $order->virtuemart_user_id,
+            'products' => $this->generateProductsParameter($order),
+            'cms_name' => 'Joomla',
+            'cms_version' => defined('JVERSION') ? JVERSION : '',
+            'shop_domain' => $_SERVER['SERVER_NAME'],
+            'path' => $_SERVER['REQUEST_URI']
         );
 
-        $parameters['reservation_data'] = base64_encode(json_encode($reservationData));
+        return base64_encode(json_encode($reservationData));
     }
 
-    protected function decodeJson($data)
+    /**
+     * @param $orderDetails
+     * @return string
+     */
+    protected function generateOrderDescription($orderDetails)
     {
-        $data = json_decode($data);
-
-        if (json_last_error() !== JSON_ERROR_NONE) {
-            throw new \Exception('Unable to parse string into JSON');
+        $description = '';
+        foreach ($orderDetails['items'] as $item) {
+            $amount = number_format($this->calculateItemTotalAmount($item), self::PRECISION);
+            $description .= "Name: $item->order_item_name ";
+            $description .= "Price: $item->product_item_price ";
+            $description .= "Qty: $item->product_quantity ";
+            $description .= "Amount: $amount\n";
         }
 
-        return $data;
+        return $description;
+    }
+
+    /**
+     * @param $orderDetails
+     * @return array
+     */
+    protected function generateProductsParameter($orderDetails)
+    {
+        $products = [];
+
+        foreach ($orderDetails['items'] as $key => $item) {
+            $products[] = [
+                'id' => $key+1,
+                'name' => $item->order_item_name,
+                'price' => number_format(floatval($item->product_item_price), self::PRECISION),
+                'total_amount' => number_format($this->calculateItemTotalAmount($item), self::PRECISION),
+                'quantity' => number_format(floatval($item->product_quantity), self::PRECISION),
+            ];
+        }
+
+        return $products;
+    }
+
+    /**
+     * @param $item
+     * @return float
+     */
+    protected function calculateItemTotalAmount($item)
+    {
+        return floatval($item->product_quantity * $item->product_item_price);
     }
 
     /**
@@ -387,19 +388,6 @@ class plgVmPaymentFrisbee extends vmPSPlugin
     protected function checkConditions($cart, $method, $cart_prices)
     {
         return true;
-    }
-
-    /**
-     * Create the table for this plugin if it does not yet exist.
-     * This functions checks if the called plugin is active one.
-     * When yes it is calling the standard method to create the tables
-     *
-     * @author Valérie Isaksen
-     *
-     */
-    function plgVmOnStoreInstallPaymentPluginTable($jplugin_id)
-    {
-        //return $this->onStoreInstallPluginTable($jplugin_id);
     }
 
     /**
@@ -442,9 +430,8 @@ class plgVmPaymentFrisbee extends vmPSPlugin
 
     function plgVmgetPaymentCurrency($virtuemart_paymentmethod_id, &$paymentCurrencyId)
     {
-
         if (! ($method = $this->getVmPluginMethod($virtuemart_paymentmethod_id))) {
-            return null; // Another method was selected, do nothing
+            return null;
         }
         if (! $this->selectedThisElement($method->payment_element)) {
             return false;
@@ -505,23 +492,6 @@ class plgVmPaymentFrisbee extends vmPSPlugin
     function plgVmSetOnTablePluginParamsPayment($name, $id, &$table)
     {
         return $this->setOnTablePluginParams($name, $id, $table);
-    }
-
-    protected function displayLogos($logo_list)
-    {
-        $img = "";
-
-        var_dump($logo_list);
-        //if (!(empty($logo_list))) {
-        //    $url = JURI::root() . 'plugins/vmpayment/fondy/';
-        //    if (!is_array($logo_list))
-        //        $logo_list = (array) $logo_list;
-        //    foreach ($logo_list as $logo) {
-        //        $alt_text = substr($logo, 0, strpos($logo, '.'));
-        //        $img .= '<img align="middle" src="' . $url . $logo . '"  alt="' . $alt_text . '" /> ';
-        //    }
-        //}
-        return $img;
     }
 }
 
