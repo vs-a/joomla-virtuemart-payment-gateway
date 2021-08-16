@@ -137,14 +137,14 @@ class plgVmPaymentFrisbee extends vmPSPlugin
         $frisbeeService->setMerchantId($method->FRISBEE_MERCHANT);
         $frisbeeService->setSecretKey($method->FRISBEE_SECRET_KEY);
         $frisbeeService->setRequestParameterOrderId($cart->order_number);
-        $frisbeeService->setRequestParameterOrderDescription($this->generateOrderDescriptionParameter($orderDetails));
+        $frisbeeService->setRequestParameterOrderDescription($this->generateOrderDescriptionParameter($order));
         $frisbeeService->setRequestParameterAmount($orderDetails->order_total);
         $frisbeeService->setRequestParameterCurrency($currency);
         $frisbeeService->setRequestParameterServerCallbackUrl($callbackUrl);
         $frisbeeService->setRequestParameterResponseUrl($responseUrl);
         $frisbeeService->setRequestParameterLanguage($lang);
         $frisbeeService->setRequestParameterSenderEmail($user['email']);
-        $frisbeeService->setRequestParameterReservationData($this->generateReservationDataParameter($orderDetails));
+        $frisbeeService->setRequestParameterReservationData($this->generateReservationDataParameter($order));
 
         $checkoutUrl = $frisbeeService->retrieveCheckoutUrl($cart->order_number);
 
@@ -274,7 +274,7 @@ class plgVmPaymentFrisbee extends vmPSPlugin
             $datetime = date("YmdHis");
             echo "OK";
         } else {
-            echo sprintf("<!-- {%s} -->", $frisbeeService->getStatusMessage());
+            echo sprintf("<!-- {%s} -->", $orderitems['comments']);
         }
 
         $orderitems['customer_notified'] = 0;
