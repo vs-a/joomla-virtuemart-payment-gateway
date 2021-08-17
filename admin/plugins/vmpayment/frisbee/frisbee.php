@@ -295,17 +295,18 @@ class plgVmPaymentFrisbee extends vmPSPlugin
     protected function generateReservationDataParameter($order)
     {
         $db = JFactory::getDBO();
+        $orderDetails = $order['details']['BT'];
 
         $query = 'SELECT *';
         $query .= ' FROM `#__virtuemart_countries`';
-        $query .= ' WHERE virtuemart_country_id = ' . $order->virtuemart_country_id;
+        $query .= ' WHERE virtuemart_country_id = ' . $orderDetails->virtuemart_country_id;
         $db->setQuery($query);
         $countryObject = $db->loadObject();
 
-        if ($order->virtuemart_state_id) {
+        if ($orderDetails->virtuemart_state_id) {
             $query = 'SELECT *';
             $query .= ' FROM `#__virtuemart_states`';
-            $query .= ' WHERE virtuemart_state_id = '.$order->virtuemart_state_id;
+            $query .= ' WHERE virtuemart_state_id = '.$orderDetails->virtuemart_state_id;
             $db->setQuery($query);
             $stateObject = $db->loadObject();
             $state = $stateObject->state_name;
@@ -314,14 +315,14 @@ class plgVmPaymentFrisbee extends vmPSPlugin
         }
 
         $reservationData = array(
-            'phonemobile' => $order->phone_2,
-            'customer_address' => $order->address_1 . ' ' . $order->address_2,
+            'phonemobile' => $orderDetails->phone_2,
+            'customer_address' => $orderDetails->address_1 . ' ' . $orderDetails->address_2,
             'customer_country' => $countryObject->country_code_2,
             'customer_state' => $state,
-            'customer_name' => $order->first_name . ' ' . $order->last_name,
-            'customer_city' => $order->city,
-            'customer_zip' => $order->zip,
-            'account' => $order->virtuemart_user_id,
+            'customer_name' => $orderDetails->first_name . ' ' . $orderDetails->last_name,
+            'customer_city' => $orderDetails->city,
+            'customer_zip' => $orderDetails->zip,
+            'account' => $orderDetails->virtuemart_user_id,
             'products' => $this->generateProductsParameter($order),
             'cms_name' => 'Joomla',
             'cms_version' => defined('JVERSION') ? JVERSION : '',
