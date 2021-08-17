@@ -265,26 +265,26 @@ class Frisbee
 
             if ($orderStatus == self::ORDER_EXPIRED) {
                 $this->isOrderExpired = true;
-                $this->setStatusMessage('Order expired.');
+                $this->setStatusMessage('Order was expired.');
 
                 return false;
             }
 
             if ($orderStatus == self::ORDER_REVERSED) {
                 $this->isOrderFullyReversed = true;
-                $this->setStatusMessage('Order fully reversed.');
+                $this->setStatusMessage('Order was fully reversed.');
 
                 return true;
             }
 
             if (isset($data['reversal_amount']) && $data['reversal_amount'] > 0) {
                 $this->isOrderPartiallyReversed = true;
-                $this->setStatusMessage('Order partially reversed.');
+                $this->setStatusMessage('Order was partially reversed.');
 
                 return true;
             }
 
-            if (strtolower($data['order_status']) != self::ORDER_APPROVED) {
+            if ($orderStatus != self::ORDER_APPROVED) {
                 $this->isOrderApproved = false;
                 $this->setStatusMessage('Order was not approved.');
 
@@ -353,12 +353,12 @@ class Frisbee
         }
 
         $responseSignature = $data['signature'];
-        if (isset($response['response_signature_string'])) {
-            unset($response['response_signature_string']);
+        if (isset($data['response_signature_string'])) {
+            unset($data['response_signature_string']);
         }
 
-        if (isset($response['signature'])) {
-            unset($response['signature']);
+        if (isset($data['signature'])) {
+            unset($data['signature']);
         }
 
         if ($this->getSignature($data) != $responseSignature) {
