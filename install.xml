@@ -9,13 +9,19 @@
     <license>http://www.gnu.org/licenses/gpl-2.0.html GNU/GPL</license>
     <version status="final">1.0.0</version>
 
-   <!-- Custom un/installer for 1.6 -->
-   <scriptfile>script.vmfrisbee.php</scriptfile>
+    <!-- Custom un/installer for 1.6 -->
+    <scriptfile>script.vmfrisbee.php</scriptfile>
     <!-- Custom installer for 1.5 -->
     <installfile>script.vmfrisbee.php</installfile>
     <!-- Custom uninstaller for 1.5 -->
     <uninstallfile>script.vmfrisbee.php</uninstallfile>
-    
+
+    <languages>
+        <language tag="en-GB">admin/language/en-GB/en-GB.plg_vmpayment_frisbee.ini</language>
+        <language tag="ru-RU">admin/language/ru-RU/ru-RU.plg_vmpayment_frisbee.ini</language>
+        <language tag="uk-UA">admin/language/uk-UA/uk-UA.plg_vmpayment_frisbee.ini</language>
+    </languages>
+
     <administration>
      <menu>Frisbee Payment Service</menu>
         <files folder="admin">

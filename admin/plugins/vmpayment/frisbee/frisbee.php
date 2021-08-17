@@ -30,9 +30,9 @@ class plgVmPaymentFrisbee extends vmPSPlugin
         $this->_configTableClassName = 'Table' . ucfirst($this->_psType) . 'methods';
 
         $varsToPush = array(
-            'FONDY_MERCHANT' => array('', 'string'),
-            'FONDY_SECRET_KEY' => array('', 'string'),
-            'FONDY_CURRENCY' => array('', 'string'),
+            'FRISBEE_MERCHANT' => array('', 'string'),
+            'FRISBEE_SECRET_KEY' => array('', 'string'),
+            'FRISBEE_CURRENCY' => array('', 'string'),
             'status_pending' => array('', 'string'),
             'status_success' => array('', 'string'),
         );

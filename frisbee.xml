@@ -17,8 +17,9 @@
 	<uninstallfile>script.vmfrisbee.php</uninstallfile>
 
     <languages>
-		<language tag="en-GB">admin/languageBE/en-GB/en-GB.plg_vmpayment_frisbee.ini</language>
-		<language tag="ru-RU">admin/languageBE/ru-RU/ru-RU.plg_vmpayment_frisbee.ini</language>
+		<language tag="en-GB">admin/language/en-GB/en-GB.plg_vmpayment_frisbee.ini</language>
+		<language tag="ru-RU">admin/language/ru-RU/ru-RU.plg_vmpayment_frisbee.ini</language>
+		<language tag="uk-UA">admin/language/uk-UA/uk-UA.plg_vmpayment_frisbee.ini</language>
     </languages>
 
 	<files folder="admin/plugins/vmpayment/frisbee">

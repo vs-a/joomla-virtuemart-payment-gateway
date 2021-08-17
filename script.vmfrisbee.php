@@ -47,7 +47,7 @@ if (! defined('_VM_SCRIPT_INCLUDED')) {
             $this->createPaymentMethod($paymentJPluginId);
 
             // language auto move
-            $src = $this->path.DS."languageBE";
+            $src = $this->path.DS."language";
             $dst = JPATH_ADMINISTRATOR.DS."language";
             $this->recurse_copy($src, $dst);
 
@@ -423,7 +423,6 @@ if (! defined('_VM_SCRIPT_INCLUDED')) {
          *
          * @param String $src path
          * @param String $dst path
-         * @param String $type modules, plugins, languageBE, languageFE
          * @author Max Milbers
          */
         private function recurse_copy($src, $dst)
