@@ -130,7 +130,7 @@ class plgVmPaymentFrisbee extends vmPSPlugin
         $user = &$cart->BT;
         $orderDetails = $order['details']['BT'];
         $paymentMethodID = $orderDetails->virtuemart_paymentmethod_id;
-        $responseUrl = JROUTE::_(JURI::root().'index.php?option=com_virtuemart&view=pluginresponse&task=pluginnotification&tmpl=component&pm='.$paymentMethodID);
+        $responseUrl = JROUTE::_(JURI::root().'index.php?option=com_virtuemart&view=cart&layout=order_done');
         $callbackUrl = JROUTE::_(JURI::root().'index.php?option=com_virtuemart&view=pluginresponse&task=pluginnotification&tmpl=component&pm='.$paymentMethodID);
 
         $frisbeeService = new Frisbee();
