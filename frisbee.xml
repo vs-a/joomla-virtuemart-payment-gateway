@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <extension version="2.5" type="plugin" method="upgrade" group="vmpayment">
-    <name>VirtueMart_frisbee_plugin</name>
+    <name>VM - Payment, Frisbee</name>
     <creationDate>August 2021</creationDate>
     <author>Frisbee.ua</author>
     <authorUrl>https://frisbee.ua</authorUrl>

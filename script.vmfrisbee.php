@@ -464,7 +464,7 @@ if (! defined('_VM_SCRIPT_INCLUDED')) {
             $db = JFactory::getDBO();
             $lang = $this->getLanguage();
 
-            if (! version_compare(JVERSION, '3.0.0', 'lt')) {
+            if (version_compare(JVERSION, '3.0.0', 'lt')) {
                 $query = "DELETE FROM `#__virtuemart_paymentmethods` WHERE `payment_name` = 'Frisbee' AND `slug` = 'frisbee'";
                 $db->setQuery($query);
                 $db->execute();
