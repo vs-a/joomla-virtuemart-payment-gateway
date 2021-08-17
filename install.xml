@@ -23,12 +23,12 @@
     </languages>
 
     <administration>
-     <menu>Frisbee Payment Service</menu>
+        <menu>Frisbee Payment Service</menu>
         <files folder="admin">
             <filename>index.html</filename> 
             <filename>admin.virtuemart_frisbee_plugin.php</filename>
             <folder>plugins</folder>
-            <folder>languageBE</folder>
+            <folder>language</folder>
         </files>
     </administration>
     
