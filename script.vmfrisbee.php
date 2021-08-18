@@ -465,11 +465,19 @@ if (! defined('_VM_SCRIPT_INCLUDED')) {
             $lang = $this->getLanguage();
 
             if (version_compare(JVERSION, '3.0.0', 'lt')) {
-                $query = "DELETE FROM `#__virtuemart_paymentmethods` WHERE `payment_name` = 'Frisbee' AND `slug` = 'frisbee'";
+                $query = "DELETE FROM `#__virtuemart_paymentmethods` WHERE `slug` = 'frisbee'";
                 $db->setQuery($query);
                 $db->execute();
 
-                $query = sprintf('DELETE FROM `#__virtuemart_paymentmethods_%s` WHERE `payment_name` = \'Frisbee\' AND `slug` = \'frisbee\'', $lang);
+                $query = sprintf('DELETE FROM `#__virtuemart_paymentmethods_%s` WHERE `slug` = \'frisbee\'', $lang);
+                $db->setQuery($query);
+                $db->execute();
+            } else {
+                $query = "DELETE FROM `#__virtuemart_paymentmethods` WHERE `payment_element` = 'frisbee'";
+                $db->setQuery($query);
+                $db->execute();
+
+                $query = sprintf('DELETE FROM `#__virtuemart_paymentmethods_%s` WHERE `slug` = \'frisbee\'', $lang);
                 $db->setQuery($query);
                 $db->execute();
             }
