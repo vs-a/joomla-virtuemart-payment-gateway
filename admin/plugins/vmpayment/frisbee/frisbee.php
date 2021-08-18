@@ -133,11 +133,12 @@ class plgVmPaymentFrisbee extends vmPSPlugin
         $responseUrl = JROUTE::_(JURI::root().'index.php?option=com_virtuemart&view=cart&layout=order_done');
         $callbackUrl = JROUTE::_(JURI::root().'index.php?option=com_virtuemart&view=pluginresponse&task=pluginnotification&tmpl=component&pm='.$paymentMethodID);
 
-        $orderModel = new VirtueMartModelOrders();
-        $orderStatusPending = isset($method->status_pending) ? $method->status_pending : 'P';
-        $order_s_id = $orderModel->getOrderIdByOrderNumber($cart->order_number);
-        $orderitems = ['order_status' => $orderStatusPending];
-        $orderModel->updateStatusForOneOrder($order_s_id, $orderitems, true);
+        $orderStatusPending = !empty($method->status_pending) ? $method->status_pending : 'P';
+        try {
+            $orderModel = new VirtueMartModelOrders();
+            $orderitems = ['order_status' => $orderStatusPending];
+            $orderModel->updateStatusForOneOrder($orderDetails->virtuemart_order_id, $orderitems, true);
+        } catch (\Exception $exception) {}
 
         $frisbeeService = new Frisbee();
         $frisbeeService->setMerchantId($method->FRISBEE_MERCHANT);
@@ -161,7 +162,7 @@ class plgVmPaymentFrisbee extends vmPSPlugin
         header("HTTP/1.1 301 Moved Permanently");
         header("Location: " . $checkoutUrl);
 
-        return $this->processConfirmedOrderPaymentResponse(2, $cart, $order, $html, '');
+        return $this->processConfirmedOrderPaymentResponse(2, $cart, $order, $html, '', $orderStatusPending);
     }
 
     function plgVmOnPaymentResponseReceived(&$html)
