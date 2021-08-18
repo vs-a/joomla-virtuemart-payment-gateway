@@ -188,15 +188,10 @@ class Frisbee
     {
         $content = file_get_contents('php://input');
 
-        if (isset($_SERVER['CONTENT_TYPE'])) {
-            switch ($_SERVER['CONTENT_TYPE']) {
-                case 'application/json':
-                    return json_decode($content, true);
-                case 'application/xml':
-                    return (array) simplexml_load_string($content, "SimpleXMLElement", LIBXML_NOCDATA);
-                default:
-                    return $_REQUEST;
-            }
+        if (strpos($_SERVER['CONTENT_TYPE'], 'application/json') !== false) {
+            return json_decode($content, true);
+        } elseif (strpos($_SERVER['CONTENT_TYPE'], 'application/xml') !== false) {
+            return (array) simplexml_load_string($content, "SimpleXMLElement", LIBXML_NOCDATA);
         }
 
         return $_REQUEST;
@@ -344,8 +339,16 @@ class Frisbee
      */
     public function isCallbackDataValid($data)
     {
-        if (!isset($data['order_status']) || !isset($data['merchant_id']) || !isset($data['signature'])) {
-            throw new \Exception('Callback data is not valid.');
+        if (!isset($data['order_status'])) {
+            throw new \Exception('Callback data order_status is empty.');
+        }
+
+        if (!isset($data['merchant_id'])) {
+            throw new \Exception('Callback data merchant_id is empty.');
+        }
+
+        if (!isset($data['signature'])) {
+            throw new \Exception('Callback data signature is empty.');
         }
 
         if ($this->merchantId != $data['merchant_id']) {
