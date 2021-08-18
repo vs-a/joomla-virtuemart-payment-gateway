@@ -133,6 +133,12 @@ class plgVmPaymentFrisbee extends vmPSPlugin
         $responseUrl = JROUTE::_(JURI::root().'index.php?option=com_virtuemart&view=cart&layout=order_done');
         $callbackUrl = JROUTE::_(JURI::root().'index.php?option=com_virtuemart&view=pluginresponse&task=pluginnotification&tmpl=component&pm='.$paymentMethodID);
 
+        $orderModel = new VirtueMartModelOrders();
+        $orderStatusPending = isset($method->status_pending) ? $method->status_pending : 'P';
+        $order_s_id = $orderModel->getOrderIdByOrderNumber($cart->order_number);
+        $orderitems = ['order_status' => $orderStatusPending];
+        $orderModel->updateStatusForOneOrder($order_s_id, $orderitems, true);
+
         $frisbeeService = new Frisbee();
         $frisbeeService->setMerchantId($method->FRISBEE_MERCHANT);
         $frisbeeService->setSecretKey($method->FRISBEE_SECRET_KEY);
