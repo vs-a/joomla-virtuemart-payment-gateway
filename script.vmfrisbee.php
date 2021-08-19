@@ -481,9 +481,6 @@ if (! defined('_VM_SCRIPT_INCLUDED')) {
                 if (is_dir($src)) {
                     JFolder::delete($src);
                 }
-            } else {
-                $app = JFactory::getApplication();
-                $app->enqueueMessage('Couldnt read dir '.$dir.' source '.$src);
             }
         }
 
