@@ -333,7 +333,7 @@ class plgVmPaymentFrisbee extends vmPSPlugin
         $reservationData = array(
             'phonemobile' => $orderDetails->phone_2,
             'customer_address' => $orderDetails->address_1 . ' ' . $orderDetails->address_2,
-            'customer_country' => $countryObject->country_code_2,
+            'customer_country' => $countryObject->country_2_code,
             'customer_state' => $state,
             'customer_name' => $orderDetails->first_name . ' ' . $orderDetails->last_name,
             'customer_city' => $orderDetails->city,
