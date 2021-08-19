@@ -338,7 +338,7 @@ class plgVmPaymentFrisbee extends vmPSPlugin
             'customer_name' => $orderDetails->first_name . ' ' . $orderDetails->last_name,
             'customer_city' => $orderDetails->city,
             'customer_zip' => $orderDetails->zip,
-            'account' => $orderDetails->virtuemart_user_id,
+            'account' => ($orderDetails->virtuemart_user_id > 0 ? $orderDetails->virtuemart_user_id : time()),
             'products' => $this->generateProductsParameter($order),
             'cms_name' => 'Joomla',
             'cms_version' => defined('JVERSION') ? JVERSION : '',
