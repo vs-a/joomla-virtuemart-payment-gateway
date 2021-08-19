@@ -9,14 +9,21 @@ if (! class_exists('vmPSPlugin')) {
 
 class plgVmPaymentFrisbee extends vmPSPlugin
 {
-    public static $_this = false;
     const PRECISION = 2;
+
+    public static $_this = false;
+    protected $_type = 'vmpayment';
+    protected $_name = 'frisbee';
 
     public function __construct(&$subject = null, $config = null)
     {
         if ($subject && $config) {
             parent::__construct($subject, $config);
         }
+
+        $filename = 'plg_' . $this->_type . '_' . $this->_name;
+
+        $this->loadJLangThis($filename);
 
         $this->_psType = 'payment';
         $this->_loggable = true;
@@ -38,6 +45,8 @@ class plgVmPaymentFrisbee extends vmPSPlugin
         );
 
         $this->setConfigParameterable($this->_configTableFieldName, $varsToPush);
+        VmConfig::loadJLang('com_virtuemart_orders', TRUE);
+        VmConfig::loadJLang('com_virtuemart');
     }
 
     /**

@@ -22,9 +22,16 @@
 		<language tag="uk-UA">admin/language/uk-UA/uk-UA.plg_vmpayment_frisbee.ini</language>
     </languages>
 
+	<languages>
+		<language tag="ru-RU">ru-RU.plg_vmpayment_frisbee.ini</language>
+		<language tag="en-GB">en-GB.plg_vmpayment_frisbee.ini</language>
+		<language tag="uk-UA">uk-UA.plg_vmpayment_frisbee.ini</language>
+	</languages>
+
 	<files folder="admin/plugins/vmpayment/frisbee">
 			<filename plugin="frisbee">frisbee.php</filename>
 			<folder>includes</folder>
+			<folder>language</folder>
 	</files>
 	
 	<vmconfig>

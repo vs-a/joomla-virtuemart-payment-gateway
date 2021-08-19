@@ -30,6 +30,8 @@ if (! defined('_VM_SCRIPT_INCLUDED')) {
 
         public function vmInstall()
         {
+            VmConfig::loadJLang('com_virtuemart');
+            VmConfig::loadJLang('com_virtuemart_orders', TRUE);
 
             jimport('joomla.filesystem.file');
             jimport('joomla.installer.installer');
@@ -375,39 +377,65 @@ if (! defined('_VM_SCRIPT_INCLUDED')) {
 
         private function createPaymentMethod($paymentJPluginId)
         {
+            VmConfig::loadJLang('com_virtuemart');
+            VmConfig::loadJLang('com_virtuemart_orders', TRUE);
             $lang = $this->getLanguage();
 
+            echo JText::_('VMPAYMENT_FRISBEE');
             $data = array(
-                'payment_name' => 'Frisbee',
+                'payment_name' => JText::_('VMPAYMENT_FRISBEE'),
                 'slug' => 'frisbee',
                 'published' => '1',
-                'payment_desc' => 'Frisbee Service',
+                'payment_desc' => JText::_('VMPAYMENT_FRISBEE_DESCRIPTION'),
                 'payment_jplugin_id' => $paymentJPluginId,
                 'ordering' => 0,
                 'option' => 'com_virtuemart',
-                'virtuemart_paymentmethod_id' => 1,
                 'task' => 'apply',
                 'boxchecked' => '0',
                 'xxcontroller' => 'paymentmethod',
                 'view' => 'paymentmethod',
             );
 
+            $db = JFactory::getDBO();
+
+            $languages = ['ru_ru', 'uk_ua'];
+            foreach ($languages as $language) {
+                $query = "
+                CREATE TABLE IF NOT EXISTS `#__virtuemart_paymentmethods_{$lang}` (
+                    virtuemart_paymentmethod_id INT,
+                    payment_name VARCHAR(255),
+                    payment_desc VARCHAR(255),
+                    slug VARCHAR(255)
+                )";
+                $db->setQuery($query);
+                $db->execute();
+            }
+
             VmConfig::$vmlang = $lang;
             $model = new \VirtueMartModelPaymentmethod();
             $paymentMethodId = $model::store($data);
 
-            $db = JFactory::getDBO();
+            $query = sprintf("INSERT IGNORE INTO `#__virtuemart_paymentmethods_%s` ".
+                "(`virtuemart_paymentmethod_id`, `payment_name`, `payment_desc`, `slug`) " .
+                "VALUES	(%d, '%s', '%s', 'frisbee')",
+                $lang,
+                $paymentMethodId,
+                JText::_('VMPAYMENT_FRISBEE'),
+                JText::_('VMPAYMENT_FRISBEE_DESCRIPTION')
+            );
+            $db->setQuery($query);
+            $db->execute();
 
-            $q = "SELECT count(virtuemart_paymentmethod_id) FROM `#__virtuemart_paymentmethods_{$lang}` WHERE slug='frisbee'";
-            $db->setQuery($q);
-            $result = $db->loadResult();
-            if (!$result) {
-                $q="INSERT INTO `#__virtuemart_paymentmethods_".$lang."` ".
-                    "(`virtuemart_paymentmethod_id`, `payment_name`, `payment_desc`, `slug`) " .
-                    "VALUES	($paymentMethodId, 'Frisbee', 'Frisbee Service', 'frisbee')";
-                $db->setQuery($q);
-                $db->execute();
-            }
+            $query = sprintf("INSERT IGNORE INTO `#__virtuemart_paymentmethods_%s` ".
+                "(`virtuemart_paymentmethod_id`, `payment_name`, `payment_desc`, `slug`) " .
+                "VALUES	(%d, '%s', '%s', 'frisbee')",
+                'en_gb',
+                $paymentMethodId,
+                JText::_('VMPAYMENT_FRISBEE'),
+                JText::_('VMPAYMENT_FRISBEE_DESCRIPTION')
+            );
+            $db->setQuery($query);
+            $db->execute();
 
             if (!class_exists('vmPSPlugin')) {
                 require(JPATH_ROOT . DS .  'vmpsplugin.php');
@@ -472,12 +500,20 @@ if (! defined('_VM_SCRIPT_INCLUDED')) {
                 $query = sprintf('DELETE FROM `#__virtuemart_paymentmethods_%s` WHERE `slug` = \'frisbee\'', $lang);
                 $db->setQuery($query);
                 $db->execute();
+
+                $query = 'DELETE FROM `#__virtuemart_paymentmethods_en_gb` WHERE `slug` = \'frisbee\'';
+                $db->setQuery($query);
+                $db->execute();
             } else {
                 $query = "DELETE FROM `#__virtuemart_paymentmethods` WHERE `payment_element` = 'frisbee'";
                 $db->setQuery($query);
                 $db->execute();
 
                 $query = sprintf('DELETE FROM `#__virtuemart_paymentmethods_%s` WHERE `slug` = \'frisbee\'', $lang);
+                $db->setQuery($query);
+                $db->execute();
+
+                $query = 'DELETE FROM `#__virtuemart_paymentmethods_en_gb` WHERE `slug` = \'frisbee\'';
                 $db->setQuery($query);
                 $db->execute();
             }
