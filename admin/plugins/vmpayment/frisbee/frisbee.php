@@ -257,11 +257,12 @@ class plgVmPaymentFrisbee extends vmPSPlugin
         $method = new plgVmPaymentFrisbee();
         $order_s_id = $order->getOrderIdByOrderNumber($order_id);
         $orderitems = $order->getOrder($order_s_id);
-        $paymentMethodId = $orderitems['details']['BT']->virtuemart_paymentmethod_id;
+        $orderdetails = $orderitems['details']['BT'];
+        $paymentMethodId = $orderdetails->virtuemart_paymentmethod_id;
 
         $methoditems = $method->__getVmPluginMethod($paymentMethodId);
-        $orderStatusPending = isset($methoditems->status_pending) ? $methoditems->status_pending : 'P';
-        $orderStatusSuccess = isset($methoditems->status_success) ? $methoditems->status_success : 'C';
+        $orderStatusPending = !empty($methoditems->status_pending) ? $methoditems->status_pending : 'P';
+        $orderStatusSuccess = !empty($methoditems->status_success) ? $methoditems->status_success : 'C';
 
         try {
             $frisbeeService->setMerchantId($methoditems->FRISBEE_MERCHANT);
@@ -272,7 +273,7 @@ class plgVmPaymentFrisbee extends vmPSPlugin
             if ($frisbeeService->isOrderDeclined()) {
                 $orderitems['order_status'] = 'D';
             } elseif ($frisbeeService->isOrderExpired()) {
-                if ($orderitems['order_status'] == $orderStatusPending) {
+                if ($orderdetails->order_status == $orderStatusPending) {
                     $orderitems['order_status'] = 'X';
                 } else {
                     die();

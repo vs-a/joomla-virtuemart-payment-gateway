@@ -30,9 +30,6 @@ if (! defined('_VM_SCRIPT_INCLUDED')) {
 
         public function vmInstall()
         {
-            VmConfig::loadJLang('com_virtuemart');
-            VmConfig::loadJLang('com_virtuemart_orders', TRUE);
-
             jimport('joomla.filesystem.file');
             jimport('joomla.installer.installer');
 
