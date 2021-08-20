@@ -343,9 +343,9 @@ class plgVmPaymentFrisbee extends vmPSPlugin
             'cms_name' => 'Joomla',
             'cms_version' => defined('JVERSION') ? JVERSION : '',
             'shop_domain' => $_SERVER['SERVER_NAME'] ?: $_SERVER['HTTP_HOST'],
-            'path' => $_SERVER['REQUEST_URI']
+            'path' => $_SERVER['REQUEST_URI'],
+            'uuid' => (isset($_SERVER['HTTP_USER_AGENT']) ? base64_encode($_SERVER['HTTP_USER_AGENT']) : time())
         );
-        $reservationData['uuid'] = sprintf('%s_%s', $reservationData['shop_domain'], $reservationData['cms_name']);
 
         return base64_encode(json_encode($reservationData));
     }
