@@ -381,7 +381,6 @@ if (! defined('_VM_SCRIPT_INCLUDED')) {
             VmConfig::loadJLang('com_virtuemart_orders', TRUE);
             $lang = $this->getLanguage();
 
-            echo JText::_('VMPAYMENT_FRISBEE');
             $data = array(
                 'payment_name' => JText::_('VMPAYMENT_FRISBEE'),
                 'slug' => 'frisbee',
